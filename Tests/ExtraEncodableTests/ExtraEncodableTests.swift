@@ -66,4 +66,12 @@ final class ExtraEncodableTests: XCTestCase {
         expect(helper, toDecodeAs: expected)
     }
     
+    func testNestedFieldHiding() {
+        let fooArray = [Foo(), Foo(), Foo()]
+        let helper = ExtraEncodable(base: fooArray, hiddenFields: ["int", "array"])
+        let expected: [[String:String]] = [["string": "Hoi"], ["string": "Hoi"], ["string": "Hoi"]]
+        
+        expect(helper, toDecodeAs: expected)
+    }
+    
 }
