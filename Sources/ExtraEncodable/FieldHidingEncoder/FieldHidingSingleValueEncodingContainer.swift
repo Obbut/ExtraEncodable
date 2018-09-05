@@ -72,7 +72,11 @@ struct FieldHidingSingleValueEncodingContainer: SingleValueEncodingContainer {
     }
     
     mutating func encode<T>(_ value: T) throws where T : Encodable {
-        let wrappedValue = FieldHidingWrappedEncodable(value: value, hiddenFields: hiddenFields)
-        try wrapped.encode(wrappedValue)
+        if blacklistedFieldHidingWrappedEncodableTypes.contains(where: { $0 == T.self }) {
+            try wrapped.encode(value)
+        } else {
+            let wrappedValue = FieldHidingWrappedEncodable(value: value, hiddenFields: hiddenFields)
+            try wrapped.encode(wrappedValue)
+        }
     }
 }

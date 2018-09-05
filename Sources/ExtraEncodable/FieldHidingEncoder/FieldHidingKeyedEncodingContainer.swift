@@ -93,8 +93,12 @@ struct FieldHidingKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
     mutating func encode<T>(_ value: T, forKey key: Key) throws where T: Encodable {
         guard mayEncode(key) else { return }
         
-        let wrappedValue = FieldHidingWrappedEncodable(value: value, hiddenFields: hiddenFields)
-        try wrapped.encode(wrappedValue, forKey: key)
+        if blacklistedFieldHidingWrappedEncodableTypes.contains(where: { $0 == T.self }) {
+            try wrapped.encode(value, forKey: key)
+        } else {
+            let wrappedValue = FieldHidingWrappedEncodable(value: value, hiddenFields: hiddenFields)
+            try wrapped.encode(wrappedValue, forKey: key)
+        }
     }
     
     mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key) -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
