@@ -1,14 +1,16 @@
 struct FieldHidingKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
     var wrapped: KeyedEncodingContainer<Key>
     var hiddenFields: [String]
+    var visibleFields: [String]?
     
-    init(_ container: KeyedEncodingContainer<Key>, hiddenFields: [String]) {
+    init(_ container: KeyedEncodingContainer<Key>, hiddenFields: [String], visibleFields: [String]? = nil) {
         self.wrapped = container
         self.hiddenFields = hiddenFields
+        self.visibleFields = visibleFields
     }
     
     private func mayEncode(_ key: Key) -> Bool {
-        return !(hiddenFields.contains(key.stringValue))
+        return !(hiddenFields.contains(key.stringValue)) && (visibleFields?.contains(key.stringValue) ?? true)
     }
     
     var codingPath: [CodingKey] {

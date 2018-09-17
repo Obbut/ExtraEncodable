@@ -24,10 +24,12 @@ let blacklistedFieldHidingWrappedEncodableTypes: [Any.Type] = [
 struct FieldHidingEncoder: Encoder {
     var wrapped: Encoder
     var hiddenFields: [String]
+    var visibleFields: [String]?
     
-    init(_ encoder: Encoder, hiddenFields: [String]) {
+    init(_ encoder: Encoder, hiddenFields: [String], visibleFields: [String]? = nil) {
         self.wrapped = encoder
         self.hiddenFields = hiddenFields
+        self.visibleFields = visibleFields
     }
     
     var codingPath: [CodingKey] {
@@ -40,7 +42,7 @@ struct FieldHidingEncoder: Encoder {
     
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key: CodingKey {
         let base = wrapped.container(keyedBy: type)
-        let hidingContainer = FieldHidingKeyedEncodingContainer(base, hiddenFields: hiddenFields)
+        let hidingContainer = FieldHidingKeyedEncodingContainer(base, hiddenFields: hiddenFields, visibleFields: visibleFields)
         return KeyedEncodingContainer(hidingContainer)
     }
     
