@@ -1,11 +1,7 @@
 struct FieldHidingSingleValueEncodingContainer: SingleValueEncodingContainer {
     var wrapped: SingleValueEncodingContainer
     var hiddenFields: [String]
-    
-    init(_ container: SingleValueEncodingContainer, hiddenFields: [String]) {
-        self.wrapped = container
-        self.hiddenFields = hiddenFields
-    }
+    var visibleFields: [String]?
 
     var codingPath: [CodingKey] {
         return wrapped.codingPath
@@ -75,7 +71,7 @@ struct FieldHidingSingleValueEncodingContainer: SingleValueEncodingContainer {
         if blacklistedFieldHidingWrappedEncodableTypes.contains(where: { $0 == T.self }) {
             try wrapped.encode(value)
         } else {
-            let wrappedValue = FieldHidingWrappedEncodable(value: value, hiddenFields: hiddenFields)
+            let wrappedValue = FieldHidingWrappedEncodable(value: value, hiddenFields: hiddenFields, visibleFields: self.visibleFields)
             try wrapped.encode(wrappedValue)
         }
     }

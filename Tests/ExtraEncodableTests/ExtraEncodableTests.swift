@@ -53,11 +53,6 @@ final class ExtraEncodableTests: XCTestCase {
         expect(helper, toDecodeAs: expected)
     }
     
-    func testFieldAdding() {
-        let foo = Foo()
-        let helper = ExtraEncodable(base: foo, extraData: ["extra": "hello"])
-    }
-    
     func testFieldAddingAndHiding() {
         let foo = Foo()
         let helper = ExtraEncodable(base: foo, extraData: ["extra": "hello", "extraHidden": "bar"], hiddenFields: ["int", "array", "extraHidden"])
@@ -72,6 +67,50 @@ final class ExtraEncodableTests: XCTestCase {
         let expected: [[String:String]] = [["string": "Hoi"], ["string": "Hoi"], ["string": "Hoi"]]
         
         expect(helper, toDecodeAs: expected)
+    }
+    
+    func testVisibleFields() throws {
+        struct Test: Codable, Equatable {
+            struct B: Codable, Equatable {
+                var c: Int? = 4
+                var d: Int? = 4
+            }
+            
+            var a: String? = "aValue"
+            var b: B? = B()
+        }
+        
+        func codableCycle<T: Codable>(with value: T, visibleFields: [String]) throws -> T {
+            let helper = ExtraEncodable(base: value, visibleFields: visibleFields)
+            let encodedJSON = try jsonEncoder.encode(helper)
+            let decodedFromJSON = try jsonDecoder.decode(T.self, from: encodedJSON)
+            return decodedFromJSON
+        }
+        
+        var cycled = try codableCycle(with: Test(), visibleFields: ["b.c"])
+        XCTAssertNil(cycled.a)
+        XCTAssertEqual(cycled.b?.c, 4)
+        XCTAssertNil(cycled.b?.d)
+        
+        cycled = try codableCycle(with: Test(), visibleFields: ["b"])
+        XCTAssertNil(cycled.a)
+        XCTAssertNotNil(cycled.b)
+        XCTAssertNotNil(cycled.b?.c)
+        XCTAssertNotNil(cycled.b?.d)
+        
+        cycled = try codableCycle(with: Test(), visibleFields: ["c"])
+        XCTAssertNil(cycled.b)
+        
+        cycled = try codableCycle(with: Test(), visibleFields: ["b.c", "d"])
+        XCTAssertNotNil(cycled.b)
+        XCTAssertNil(cycled.b?.d)
+        
+        // Test with array
+        let cycledArray = try codableCycle(with: [Test()], visibleFields: ["b.c", "d"])
+        XCTAssertNotNil(cycledArray.first)
+        XCTAssertNotNil(cycledArray.first?.b)
+        XCTAssertNil(cycledArray.first?.b?.d)
+        XCTAssertNil(cycledArray.first?.a)
     }
     
 }

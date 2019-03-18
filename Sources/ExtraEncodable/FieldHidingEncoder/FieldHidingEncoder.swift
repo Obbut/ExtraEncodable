@@ -48,12 +48,12 @@ struct FieldHidingEncoder: Encoder {
     
     func unkeyedContainer() -> UnkeyedEncodingContainer {
         let originalContainer = wrapped.unkeyedContainer()
-        return FieldHidingUnkeyedEncodingContainer(originalContainer, hiddenFields: hiddenFields)
+        return FieldHidingUnkeyedEncodingContainer(container: originalContainer, hiddenFields: hiddenFields, visibleFields: visibleFields)
     }
     
     func singleValueContainer() -> SingleValueEncodingContainer {
         let originalContainer = wrapped.singleValueContainer()
-        return FieldHidingSingleValueEncodingContainer(originalContainer, hiddenFields: hiddenFields)
+        return FieldHidingSingleValueEncodingContainer(wrapped: originalContainer, hiddenFields: hiddenFields, visibleFields: visibleFields)
     }
 }
 

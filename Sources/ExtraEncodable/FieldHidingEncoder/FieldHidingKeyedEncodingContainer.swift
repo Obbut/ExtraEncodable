@@ -10,7 +10,7 @@ struct FieldHidingKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
     }
     
     private func mayEncode(_ key: Key) -> Bool {
-        return !(hiddenFields.contains(key.stringValue)) && (visibleFields?.contains(key.stringValue) ?? true)
+        return !(hiddenFields.contains(key.stringValue)) && (visibleFields?.containsValuesForKey(key.stringValue) ?? true)
     }
     
     var codingPath: [CodingKey] {
@@ -98,7 +98,7 @@ struct FieldHidingKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
         if blacklistedFieldHidingWrappedEncodableTypes.contains(where: { $0 == T.self }) {
             try wrapped.encode(value, forKey: key)
         } else {
-            let wrappedValue = FieldHidingWrappedEncodable(value: value, hiddenFields: hiddenFields)
+            let wrappedValue = FieldHidingWrappedEncodable(value: value, hiddenFields: hiddenFields, visibleFields: self.visibleFields?.visibleFieldsValue(underKey: key.stringValue))
             try wrapped.encode(wrappedValue, forKey: key)
         }
     }
@@ -120,7 +120,7 @@ struct FieldHidingKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
         }
         
         let originalNestedContainer = wrapped.nestedUnkeyedContainer(forKey: key)
-        return FieldHidingUnkeyedEncodingContainer(originalNestedContainer, hiddenFields: self.hiddenFields)
+        return FieldHidingUnkeyedEncodingContainer(container: originalNestedContainer, hiddenFields: self.hiddenFields, visibleFields: visibleFields?.visibleFieldsValue(underKey: key.stringValue))
     }
     
     mutating func superEncoder() -> Encoder {

@@ -1,11 +1,7 @@
 struct FieldHidingUnkeyedEncodingContainer: UnkeyedEncodingContainer {
     var container: UnkeyedEncodingContainer
     var hiddenFields: [String]
-    
-    init(_ container: UnkeyedEncodingContainer, hiddenFields: [String]) {
-        self.container = container
-        self.hiddenFields = hiddenFields
-    }
+    var visibleFields: [String]?
     
     var codingPath: [CodingKey] {
         return container.codingPath
@@ -28,7 +24,7 @@ struct FieldHidingUnkeyedEncodingContainer: UnkeyedEncodingContainer {
     
     mutating func nestedUnkeyedContainer() -> UnkeyedEncodingContainer {
         let originalNestedContainer = container.nestedUnkeyedContainer()
-        return FieldHidingUnkeyedEncodingContainer(originalNestedContainer, hiddenFields: self.hiddenFields)
+        return FieldHidingUnkeyedEncodingContainer(container: originalNestedContainer, hiddenFields: self.hiddenFields, visibleFields: visibleFields)
     }
     
     mutating func superEncoder() -> Encoder {
@@ -96,7 +92,7 @@ struct FieldHidingUnkeyedEncodingContainer: UnkeyedEncodingContainer {
         if blacklistedFieldHidingWrappedEncodableTypes.contains(where: { $0 == T.self }) {
             try container.encode(value)
         } else {
-            let wrappedValue = FieldHidingWrappedEncodable(value: value, hiddenFields: hiddenFields)
+            let wrappedValue = FieldHidingWrappedEncodable(value: value, hiddenFields: hiddenFields, visibleFields: visibleFields)
             try container.encode(wrappedValue)
         }
     }
